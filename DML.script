@@ -1,0 +1,16 @@
+-- Inserção de dados iniciais na tabela Usuarios
+INSERT INTO Usuarios (nome, email) VALUES
+('João Silva', 'joao.silva@example.com'),
+('Maria Oliveira', 'maria.oliveira@example.com');
+
+-- Inserção de dados iniciais na tabela Maquinas
+INSERT INTO Maquinas (ip, status) VALUES
+('192.168.1.1', 'available'),
+('192.168.1.2', 'available'),
+('192.168.1.3', 'available'),
+('192.168.1.4', 'available');
+
+-- Inserção de dados iniciais na tabela Deploys
+INSERT INTO Deploys (usuario_id, status, maquina1_id, maquina2_id, maquina3_id) VALUES
+(1, 'pending', 1, 2, 3),
+(2, 'pending', 2, 3, 4);

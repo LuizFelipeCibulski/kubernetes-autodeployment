@@ -1,0 +1,30 @@
+-- Criação do banco de dados
+CREATE DATABASE kubernetes_deploy;
+
+-- Conectar ao banco de dados criado
+\c kubernetes_deploy;
+
+-- Criação da tabela Usuarios
+CREATE TABLE Usuarios (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- Criação da tabela Maquinas
+CREATE TABLE Maquinas (
+    id SERIAL PRIMARY KEY,
+    ip VARCHAR(15) UNIQUE NOT NULL,
+    status VARCHAR(20) NOT NULL
+);
+
+-- Criação da tabela Deploys
+CREATE TABLE Deploys (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT REFERENCES Usuarios(id),
+    status VARCHAR(20) NOT NULL,
+    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    maquina1_id INT REFERENCES Maquinas(id),
+    maquina2_id INT REFERENCES Maquinas(id),
+    maquina3_id INT REFERENCES Maquinas(id)
+);
