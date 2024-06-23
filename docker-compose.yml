@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: kubernetes_deploy
       POSTGRES_USER: kubernetes 
-      POSTGRES_PASSWORD: "senhaforteaqui"
+      POSTGRES_PASSWORD: senhaforteaqui
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:

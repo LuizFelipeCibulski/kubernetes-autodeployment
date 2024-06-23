@@ -3,9 +3,9 @@ import psycopg2
 def connect_to_db():
     try:
         connection = psycopg2.connect(
-            user="seu_usuario",
-            password="sua_senha",
-            host="seu_host", # geralmente 'localhost' ou endereço IP do servidor de banco de dados
+            user="kubernetes",
+            password="senhaforteaqui",
+            host="127.0.0.1",
             port="5432",
             database="kubernetes_deploy"
         )
