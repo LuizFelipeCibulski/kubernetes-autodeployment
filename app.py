@@ -1,64 +1,54 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from config import Config
+from flask import Flask, request, jsonify, send_file, send_from_directory, render_template
+from flask_cors import CORS
+import subprocess
+import os
 
 app = Flask(__name__)
-app.config.from_object(Config)
-db = SQLAlchemy(app)
+CORS(app)
 
-from models import Usuario, Maquina, Deploy
+@app.route('/deploy', methods=['POST'])
+def deploy():
+    data = request.json
+    master_ip = data['master_ip']
+    worker_ips = data['worker_ips']
+    ssh_user = data['ssh_user']
+    ssh_password = data['ssh_password']
 
-@app.route('/usuarios', methods=['POST'])
-def create_usuario():
-    data = request.get_json()
-    nome = data.get('nome')
-    email = data.get('email')
-    
-    if not nome or not email:
-        return jsonify({"error": "Nome e email são obrigatórios"}), 400
+    # Atualizar inventário Ansible
+    inventory_content = "[masters]\n"
+    inventory_content += f"master ansible_host={master_ip} ansible_user={ssh_user} ansible_ssh_pass={ssh_password}\n\n"
+    inventory_content += "[workers]\n"
+    for idx, ip in enumerate(worker_ips):
+        inventory_content += f"worker{idx+1} ansible_host={ip} ansible_user={ssh_user} ansible_ssh_pass={ssh_password}\n"
+    inventory_content += "\n[all:vars]\n"
+    inventory_content += "ansible_python_interpreter=/usr/bin/python3\n"
 
-    usuario = Usuario(nome=nome, email=email)
-    db.session.add(usuario)
-    db.session.commit()
-    return jsonify({"id": usuario.id, "nome": usuario.nome, "email": usuario.email}), 201
+    with open('ansible/inventory.ini', 'w') as f:
+        f.write(inventory_content)
 
-@app.route('/maquinas', methods=['POST'])
-def create_maquina():
-    data = request.get_json()
-    ip = data.get('ip')
-    status = data.get('status', 'available')
-    
-    if not ip:
-        return jsonify({"error": "IP é obrigatório"}), 400
+    # Executar o playbook Ansible
+    result = subprocess.run(['ansible-playbook', '-i', 'ansible/inventory.ini', 'ansible/playbooks/kubernetes_cluster.yml'], capture_output=True, text=True)
 
-    maquina = Maquina(ip=ip, status=status)
-    db.session.add(maquina)
-    db.session.commit()
-    return jsonify({"id": maquina.id, "ip": maquina.ip, "status": maquina.status}), 201
+    if result.returncode == 0:
+        return jsonify({'status': 'success', 'output': result.stdout})
+    else:
+        return jsonify({'status': 'error', 'output': result.stderr}), 500
 
-@app.route('/deploys', methods=['POST'])
-def create_deploy():
-    data = request.get_json()
-    usuario_id = data.get('usuario_id')
-    maquina1_id = data.get('maquina1_id')
-    maquina2_id = data.get('maquina2_id')
-    maquina3_id = data.get('maquina3_id')
-    status = data.get('status', 'pending')
-    
-    if not usuario_id or not maquina1_id or not maquina2_id or not maquina3_id:
-        return jsonify({"error": "Todos os IDs são obrigatórios"}), 400
+@app.route('/get-kubeconfig', methods=['GET'])
+def get_kubeconfig():
+    kubeconfig_path = '/home/ocs-user/.kube/config'
+    try:
+        return send_file(kubeconfig_path, as_attachment=True)
+    except Exception as e:
+        return str(e), 500
 
-    deploy = Deploy(usuario_id=usuario_id, status=status,
-                    maquina1_id=maquina1_id, maquina2_id=maquina2_id, maquina3_id=maquina3_id)
-    db.session.add(deploy)
-    db.session.commit()
-    return jsonify({"id": deploy.id, "usuario_id": deploy.usuario_id, "status": deploy.status}), 201
+@app.route('/')
+def serve_index():
+    return render_template('index.html') 
 
-@app.route('/deploys/<int:deploy_id>', methods=['GET'])
-def get_deploy(deploy_id):
-    deploy = Deploy.query.get_or_404(deploy_id)
-    return jsonify({"id": deploy.id, "usuario_id": deploy.usuario_id, "status": deploy.status,
-                    "maquina1_id": deploy.maquina1_id, "maquina2_id": deploy.maquina2_id, "maquina3_id": deploy.maquina3_id})
+@app.route('/<path:path>')
+def serve_file(path):
+    return send_from_directory(app.static_folder, path)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

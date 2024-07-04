@@ -1,20 +1,25 @@
-# Usar a imagem oficial do Python como base
-FROM python:3.9
+# Use a imagem base do Python
+FROM python:3.9-slim
 
-# Definir o diretório de trabalho dentro do container
+# Defina o diretório de trabalho no contêiner
 WORKDIR /app
 
-# Copiar os arquivos de requisitos do projeto para o diretório de trabalho
-COPY requirements.txt requirements.txt
+# Copie o arquivo de requisitos para o contêiner
+COPY requirements.txt .
 
-# Instalar as dependências
+RUN apt-get update && apt-get install -y \
+    openssh-client \
+    sshpass
+
+# Instale as dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar o restante do código para o diretório de trabalho
+# Copie o restante da aplicação para o contêiner
 COPY . .
 
-# Definir a variável de ambiente para que o Flask rode no modo de produção
-ENV FLASK_ENV=production
+# Exponha a porta em que a aplicação irá rodar
+EXPOSE 5000
 
-# Comando para rodar o aplicativo Flask
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Comando para rodar a aplicação
+CMD ["python", "app.py"]
+

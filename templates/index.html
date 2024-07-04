@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Auto Deploy Cluster</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <script defer src="static/scripts.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="deploy-form">
+            <h2>Kubernetes Auto Deploy Cluster</h2>
+            <form id="deployForm">
+                <input type="text" name="master_ip" placeholder="Master IP/PORT" required>
+                <input type="text" name="worker_ips[]" placeholder="Worker1 IP/PORT" required>
+                <input type="text" name="worker_ips[]" placeholder="Worker2 IP/PORT" required>
+                <input type="text" name="ssh_user" placeholder="Usuário" required>
+                <input type="password" name="ssh_password" placeholder="Senha" required>
+                <button type="submit">START DEPLOY</button>
+            </form>
+            <div id="loading" style="display:none;">Carregando...</div>
+            <div id="output"></div>
+        </div>
+    </div>
+</body>
+</html>
+

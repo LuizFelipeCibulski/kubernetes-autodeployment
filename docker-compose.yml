@@ -1,29 +1,10 @@
-version: '3.3'
+version: '2.2'
 
 services:
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_DB: kubernetes_deploy
-      POSTGRES_USER: kubernetes 
-      POSTGRES_PASSWORD: senhaforteaqui
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   web:
     build: .
-    command: flask run --host=0.0.0.0
-    volumes:
-      - .:/app
     ports:
       - "5000:5000"
-    environment:
-      FLASK_ENV: development
-      DATABASE_URI: postgresql://kubernetes:senhaforteaqui@db:5432/kubernetes_deploy
-    depends_on:
-      - db
+    volumes:
+      - .:/app
 
-volumes:
-  db_data: 
