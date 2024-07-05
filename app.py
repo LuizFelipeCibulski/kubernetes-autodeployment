@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_file, send_from_directory, render_template, Response
 from flask_cors import CORS
 import subprocess
 import os
@@ -27,7 +27,21 @@ def deploy():
         f.write(inventory_content)
 
     # Executar o playbook Ansible
-    result = subprocess.run(['ansible-playbook', '-i', 'ansible/inventory.ini', 'ansible/playbooks/kubernetes_cluster.yml'], capture_output=True, text=True)
+#    result = subprocess.run(['ansible-playbook', '-i', 'ansible/inventory.ini', 'ansible/playbooks/kubernetes_cluster.yml'], capture_output=True, text=True)
+
+# Função para gerar logs em tempo real
+    def generate_logs():
+        process = subprocess.Popen(['ansible-playbook', '-i', 'ansible/inventory.ini', 'ansible/playbooks/kubernetes_cluster.yml'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        for stdout_line in iter(process.stdout.readline, ""):
+            yield f"data:{stdout_line}\n\n"
+        process.stdout.close()
+        return_code = process.wait()
+        if return_code:
+            for stderr_line in iter(process.stderr.readline, ""):
+                yield f"data:{stderr_line}\n\n"
+            process.stderr.close()
+
+    return Response(generate_logs(), mimetype='text/event-stream')
 
     if result.returncode == 0:
         return jsonify({'status': 'success', 'output': result.stdout})

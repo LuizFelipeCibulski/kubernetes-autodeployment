@@ -26,13 +26,13 @@ document.getElementById('deployForm').addEventListener('submit', function(event)
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
+        return response.text(); // Use .text() instead of .json()
     })
-    .then(result => {
+    .then(text => {
         // Esconder a tela de carregamento
         document.getElementById('loading').style.display = 'none';
-        console.log('Resposta da API:', result);
-        document.getElementById('output').textContent = result.status === 'success' ? result.output : `Error: ${result.output}`;
+        console.log('Resposta da API:', text);
+        document.getElementById('output').textContent = text;
     })
     .catch(error => {
         // Esconder a tela de carregamento
@@ -41,4 +41,6 @@ document.getElementById('deployForm').addEventListener('submit', function(event)
         document.getElementById('output').textContent = `Error: ${error.message}`;
     });
 });
+
+
 
