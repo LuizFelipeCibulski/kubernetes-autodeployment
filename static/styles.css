@@ -109,3 +109,13 @@ body {
     background-color: #32cd32; /* Cor do botão verde escuro ao passar o mouse */
 }
 
+#error {
+    color: red;
+}
+
+.highlight {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+

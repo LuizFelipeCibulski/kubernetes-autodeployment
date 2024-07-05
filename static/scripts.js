@@ -11,7 +11,7 @@ document.getElementById('deployForm').addEventListener('submit', function(event)
 
     // Mostrar a tela de carregamento
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('output').textContent = '';
+    document.getElementById('output').innerHTML = '';
 
     console.log('Enviando dados para a API:', data);
 
@@ -32,15 +32,29 @@ document.getElementById('deployForm').addEventListener('submit', function(event)
         // Esconder a tela de carregamento
         document.getElementById('loading').style.display = 'none';
         console.log('Resposta da API:', text);
-        document.getElementById('output').textContent = text;
+        const formattedText = formatOutput(text);
+        document.getElementById('output').innerHTML = formattedText;
     })
     .catch(error => {
         // Esconder a tela de carregamento
         document.getElementById('loading').style.display = 'none';
         console.error('Erro ao chamar a API:', error);
-        document.getElementById('output').textContent = `Error: ${error.message}`;
+        document.getElementById('output').innerHTML = `<div class="error">Error: ${error.message}</div>`;
     });
 });
 
+function formatOutput(text) {
+    let lines = text.split('data:');
+    lines = lines.map(line => line.trim()).filter(line => line !== '');
 
+    return lines.map(line => {
+        if (line.includes('FAILED!')) {
+            return `<div class="error">${line}</div>`;
+        } else if (line.includes('PLAY') || line.includes('TASK')) {
+            return `<div class="highlight">${line}</div>`;
+        } else {
+            return `<div>${line}</div>`;
+        }
+    }).join('');
+}
 
